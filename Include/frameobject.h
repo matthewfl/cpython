@@ -11,6 +11,7 @@ typedef struct {
     int b_type;			/* what kind of block this is */
     int b_handler;		/* where to jump to find handler */
     int b_level;		/* value stack level to pop to */
+    unsigned char *b_setup_loop_instr; /* used by redmagic to identify the loop that we are running in */
 } PyTryBlock;
 
 typedef struct _frame {

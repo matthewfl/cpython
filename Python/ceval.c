@@ -9,6 +9,8 @@
 /* enable more aggressive intra-module optimizations, where available */
 #define PY_LOCAL_AGGRESSIVE
 
+#include "../redmagic.h"
+
 #include "Python.h"
 
 #include "code.h"
@@ -1280,7 +1282,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             FAST_DISPATCH();
         }
 
-       
+
         TARGET_NOARG(DUP_TOP)
         {
             v = TOP();
@@ -1823,7 +1825,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         }
 
 
-     
+
         TARGET_WITH_IMPL_NOARG(SLICE, _slice)
         TARGET_WITH_IMPL_NOARG(SLICE_1, _slice)
         TARGET_WITH_IMPL_NOARG(SLICE_2, _slice)
@@ -1848,7 +1850,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             break;
         }
 
-     
+
         TARGET_WITH_IMPL_NOARG(STORE_SLICE, _store_slice)
         TARGET_WITH_IMPL_NOARG(STORE_SLICE_1, _store_slice)
         TARGET_WITH_IMPL_NOARG(STORE_SLICE_2, _store_slice)
@@ -2119,6 +2121,8 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
                     v = POP();
                     Py_DECREF(v);
                 }
+                if(b->b_setup_loop_instr != NULL)
+                  redmagic_fellthrough_branch((void*)b->b_setup_loop_instr);
             }
             DISPATCH();
         }
@@ -2768,7 +2772,9 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         PREDICTED_WITH_ARG(JUMP_ABSOLUTE);
         TARGET(JUMP_ABSOLUTE)
         {
-            JUMPTO(oparg);
+          if(first_instr + oparg < next_instr && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL)
+            redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
+          JUMPTO(oparg);
 #if FAST_LOOPS
             /* Enabling this path speeds-up all while and for-loops by bypassing
                the per-loop checks for signals.  By default, this should be turned-off
@@ -2852,6 +2858,8 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 
             PyFrame_BlockSetup(f, opcode, INSTR_OFFSET() + oparg,
                                STACK_LEVEL());
+            if(opcode == SETUP_LOOP)
+              f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr = next_instr;
             DISPATCH();
         }
 
@@ -3211,8 +3219,17 @@ fast_block_end:
             assert(why != WHY_YIELD);
             if (b->b_type == SETUP_LOOP && why == WHY_CONTINUE) {
                 why = WHY_NOT;
-                JUMPTO(PyInt_AS_LONG(retval));
+                // rearange so that the backwards branch operation will have the same behaviro when looping using a continue
+                long x_val = PyInt_AS_LONG(retval);
                 Py_DECREF(retval);
+                if(first_instr + x_val < next_instr && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL)
+                  redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
+                JUMPTO(x_val);
+#if FAST_LOOPS
+                goto fast_next_opcode;
+#else
+                DISPATCH();
+#endif
                 break;
             }
 
@@ -3223,6 +3240,10 @@ fast_block_end:
                 v = POP();
                 Py_XDECREF(v);
             }
+
+            if(b->b_setup_loop_instr != NULL)
+              redmagic_fellthrough_branch((void*)b->b_setup_loop_instr);
+
             if (b->b_type == SETUP_LOOP && why == WHY_BREAK) {
                 why = WHY_NOT;
                 JUMPTO(b->b_handler);
@@ -4331,11 +4352,15 @@ call_function(PyObject ***pp_stack, int oparg
             PyCFunction meth = PyCFunction_GET_FUNCTION(func);
             PyObject *self = PyCFunction_GET_SELF(func);
             if (flags & METH_NOARGS && na == 0) {
+                redmagic_temp_disable();
                 C_TRACE(x, (*meth)(self,NULL));
+                redmagic_temp_enable();
             }
             else if (flags & METH_O && na == 1) {
                 PyObject *arg = EXT_POP(*pp_stack);
+                redmagic_temp_disable();
                 C_TRACE(x, (*meth)(self,arg));
+                redmagic_temp_enable();
                 Py_DECREF(arg);
             }
             else {
@@ -4347,7 +4372,9 @@ call_function(PyObject ***pp_stack, int oparg
             PyObject *callargs;
             callargs = load_args(pp_stack, na);
             READ_TIMESTAMP(*pintr0);
+            redmagic_temp_disable();
             C_TRACE(x, PyCFunction_Call(func,callargs,NULL));
+            redmagic_temp_enable();
             READ_TIMESTAMP(*pintr1);
             Py_XDECREF(callargs);
         }
@@ -4561,7 +4588,9 @@ do_call(PyObject *func, PyObject ***pp_stack, int na, int nk)
 #endif
     if (PyCFunction_Check(func)) {
         PyThreadState *tstate = PyThreadState_GET();
+        redmagic_temp_disable();
         C_TRACE(result, PyCFunction_Call(func, callargs, kwdict));
+        redmagic_temp_enable();
     }
     else
         result = PyObject_Call(func, callargs, kwdict);
@@ -4658,7 +4687,9 @@ ext_do_call(PyObject *func, PyObject ***pp_stack, int flags, int na, int nk)
 #endif
     if (PyCFunction_Check(func)) {
         PyThreadState *tstate = PyThreadState_GET();
+        redmagic_temp_disable();
         C_TRACE(result, PyCFunction_Call(func, callargs, kwdict));
+        redmagic_temp_enable();
     }
     else
         result = PyObject_Call(func, callargs, kwdict);

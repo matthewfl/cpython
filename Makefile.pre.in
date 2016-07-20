@@ -183,7 +183,7 @@ LDLIBRARYDIR=   @LDLIBRARYDIR@
 INSTSONAME=	@INSTSONAME@
 
 
-LIBS=		@LIBS@
+LIBS=		@LIBS@ $(shell pwd)/libredmagic.so.1.0.0 -Wl,-rpath=$$ORIGIN/ -Wl,-rpath=$(shell pwd)
 LIBM=		@LIBM@
 LIBC=		@LIBC@
 SYSLIBS=	$(LIBM) $(LIBC)
@@ -315,7 +315,7 @@ ASDLGEN=	$(srcdir)/Parser/asdl_c.py
 
 OPCODETARGETS_H= \
 		$(srcdir)/Python/opcode_targets.h
-		
+
 OPCODETARGETGEN= \
 		$(srcdir)/Python/makeopcodetargets.py
 

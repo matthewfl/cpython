@@ -1,5 +1,7 @@
 /* Python interpreter main program */
 
+#include "../redmagic.h"
+
 #include "Python.h"
 #include "osdefs.h"
 #include "code.h" /* For CO_FUTURE_DIVISION */
@@ -261,6 +263,8 @@ Py_Main(int argc, char **argv)
 #ifdef RISCOS
     Py_RISCOSWimpFlag = 0;
 #endif
+
+    redmagic_start();
 
     /* Hash randomization needed early for all string operations
        (including -W and -X options). */
@@ -701,4 +705,3 @@ Py_GetArgcArgv(int *argc, char ***argv)
 #ifdef __cplusplus
 }
 #endif
-

@@ -755,6 +755,7 @@ PyFrame_BlockSetup(PyFrameObject *f, int type, int handler, int level)
     b->b_type = type;
     b->b_level = level;
     b->b_handler = handler;
+    b->b_setup_loop_instr = NULL;
 }
 
 PyTryBlock *
