@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 # View a single MIME multipart message.
 # Display each part as a box.

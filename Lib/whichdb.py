@@ -1,4 +1,4 @@
-# !/usr/bin/env python
+# !/usr/bin/env python2
 """Guess which db package to use to open a db file."""
 
 import os

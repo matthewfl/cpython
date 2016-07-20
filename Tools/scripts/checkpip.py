@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python22
 """
 Checks that the version of the projects bundled in ensurepip are the latest
 versions available.

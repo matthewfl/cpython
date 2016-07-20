@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 # Print the product of age and size of each file, in suitable units.
 #

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 """A multi-threaded telnet-like server that gives a Python prompt.
 

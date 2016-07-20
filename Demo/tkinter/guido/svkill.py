@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 # Tkinter interface to SYSV `ps' and `kill' commands.
 

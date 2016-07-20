@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 # DAH should be three DOTs.
 # Space between DOTs and DAHs should be one DOT.

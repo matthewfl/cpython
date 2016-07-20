@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 ## vim:ts=4:et:nowrap
 """A user-defined wrapper around string objects
 

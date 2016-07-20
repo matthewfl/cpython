@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # This file is meant as an executable script for running applets.
 # BuildApplet will use it as the main executable in the .app bundle if
 # we are not running in a framework build.

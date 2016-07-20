@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 """\
 bundlebuilder.py -- Tools to assemble MacOS X (application) bundles.

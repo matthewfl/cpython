@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 # Tkinter interface to Linux `kill' command.
 
 from Tkinter import *

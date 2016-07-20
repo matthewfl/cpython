@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
-# Fix Python script(s) to reference the interpreter via /usr/bin/env python.
+# Fix Python script(s) to reference the interpreter via /usr/bin/env python2.
 # Warning: this overwrites the file without making a backup.
 
 import sys
@@ -22,7 +22,7 @@ def main():
         rest = f.read()
         f.close()
         line = re.sub('/usr/local/bin/python',
-                      '/usr/bin/env python', line)
+                      '/usr/bin/env python2', line)
         print filename, ':', repr(line)
         f = open(filename, "w")
         f.write(line)

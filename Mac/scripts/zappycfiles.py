@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """Recursively zap all .pyc and .pyo files"""
 import os
 import sys

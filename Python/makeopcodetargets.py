@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 """Generate C code for the jump table of the threaded code interpreter
 (for compilers supporting computed gotos or "labels-as-values", such as gcc).
 """

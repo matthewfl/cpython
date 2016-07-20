@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 # Format du output in a tree shape
 
 import os, sys, errno

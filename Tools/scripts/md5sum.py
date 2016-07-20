@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 """Python utility to print MD5 checksums of argument files.
 """

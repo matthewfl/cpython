@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 # Minimal interface to the Internet telnet protocol.
 #

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """buildpkg.py -- Build OS X packages for Apple's Installer.app.
 

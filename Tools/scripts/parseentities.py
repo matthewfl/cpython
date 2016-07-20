@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """ Utility for parsing HTML entity definitions available from:
 
       http://www.w3.org/ as e.g.

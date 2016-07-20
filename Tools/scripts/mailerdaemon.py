@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """mailerdaemon - classes to parse mailer-daemon messages"""
 
 import rfc822

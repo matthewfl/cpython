@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """
 Synopsis: %(prog)s [-h|-g|-b|-r|-a] dbfile [ picklefile ]

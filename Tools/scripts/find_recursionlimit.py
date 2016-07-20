@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 """Find the maximum recursion limit that prevents interpreter termination.
 
 This script finds the maximum safe recursion limit on a particular

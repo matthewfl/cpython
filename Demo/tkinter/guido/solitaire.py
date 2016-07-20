@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 """Solitaire game, much like the one that comes with MS Windows.
 

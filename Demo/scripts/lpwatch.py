@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 # Watch line printer queue(s).
 # Intended for BSD 4.3 lpq.

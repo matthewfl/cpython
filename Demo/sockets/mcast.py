@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Send/receive UDP multicast packets.
 # Requires that your OS kernel supports IP multicast.
