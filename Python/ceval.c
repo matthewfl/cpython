@@ -2772,9 +2772,11 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         PREDICTED_WITH_ARG(JUMP_ABSOLUTE);
         TARGET(JUMP_ABSOLUTE)
         {
-          if(first_instr + oparg < next_instr && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL)
-            redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
+          uint8_t back_branch = first_instr + oparg < next_instr && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL;
           JUMPTO(oparg);
+          if(back_branch)
+            redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
+
 #if FAST_LOOPS
             /* Enabling this path speeds-up all while and for-loops by bypassing
                the per-loop checks for signals.  By default, this should be turned-off
@@ -3222,9 +3224,10 @@ fast_block_end:
                 // rearange so that the backwards branch operation will have the same behaviro when looping using a continue
                 long x_val = PyInt_AS_LONG(retval);
                 Py_DECREF(retval);
-                if(first_instr + x_val < next_instr && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL)
-                  redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
+                uint8_t back_branch = first_instr + x_val < next_instr && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL;
                 JUMPTO(x_val);
+                if(back_branch)
+                  redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
 #if FAST_LOOPS
                 goto fast_next_opcode;
 #else
@@ -3354,6 +3357,15 @@ fast_yield:
 exit_eval_frame:
     Py_LeaveRecursiveCall();
     tstate->frame = f->f_back;
+
+    //printf("%i\n", why);
+
+    // any frame that is going to exist at the end of the method is the result of a yield
+    // and thus is not well behaved wrt control flow, so we are just going to backlist those
+    for(int i = 0; i < f->f_iblock; i++)
+      if(f->f_blockstack[i].b_setup_loop_instr != NULL)
+        redmagic_disable_branch((void*)f->f_blockstack[i].b_setup_loop_instr);
+
 
     return retval;
 }

@@ -1,6 +1,8 @@
 
 /* Python interpreter top-level routines, including init/exit */
 
+#include "../redmagic.h"
+
 #include "Python.h"
 
 #include "Python-ast.h"
@@ -177,6 +179,12 @@ Py_InitializeEx(int install_sigs)
     if (initialized)
         return;
     initialized = 1;
+
+    redmagic_start();
+    redmagic_do_not_trace_function(&PyObject_Malloc);
+    redmagic_do_not_trace_function(&PyObject_Free);
+    redmagic_do_not_trace_function(&PyObject_Realloc);
+
 
     if ((p = Py_GETENV("PYTHONDEBUG")) && *p != '\0')
         Py_DebugFlag = add_flag(Py_DebugFlag, p);
@@ -2031,4 +2039,3 @@ PyRun_InteractiveLoop(FILE *f, const char *p)
 #ifdef __cplusplus
 }
 #endif
-
