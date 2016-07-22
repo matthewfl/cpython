@@ -1,6 +1,11 @@
 /* List object implementation */
 
+
 #include "Python.h"
+
+
+#include "../redmagic.h"
+#include "frameobject.h" // fuck
 
 #ifdef STDC_HEADERS
 #include <stddef.h>
@@ -804,6 +809,7 @@ listextend(PyListObject *self, PyObject *b)
     Py_ssize_t mn;                 /* m + n */
     Py_ssize_t i;
     PyObject *(*iternext)(PyObject *);
+    void *generation_code; /* for redmagic to track which block of code is gernating this iter */
 
     /* Special cases:
        1) lists and tuples which can use PySequence_Fast ops
@@ -847,6 +853,14 @@ listextend(PyListObject *self, PyObject *b)
         return NULL;
     iternext = *it->ob_type->tp_iternext;
 
+    generation_code = NULL;
+    if(it->ob_type == &PyGen_Type) {
+      PyFrameObject *f = ((PyGenObject*)it)->gi_frame;
+      if(f != NULL) {
+        generation_code = (void*) f->f_code;
+      }
+    }
+
     /* Guess a result list size. */
     n = _PyObject_LengthHint(b, 8);
     if (n == -1) {
@@ -866,6 +880,11 @@ listextend(PyListObject *self, PyObject *b)
      * is enough room, ignore it.  If n was telling the truth, we'll
      * eventually run out of memory during the loop.
      */
+
+    // this is a variable length loop so there is little point in trying to inline it
+    // given that we don't have a unique identifer that we can use to trace it
+    if(generation_code == NULL)
+      redmagic_temp_disable();
 
     /* Run iterator to exhaustion. */
     for (;;) {
@@ -890,7 +909,19 @@ listextend(PyListObject *self, PyObject *b)
             if (status < 0)
                 goto error;
         }
+
+        // trace this loop entry point
+        // at the end of the method so that we can avoid the first loop which would have the generator
+        // performing a number of setups etc
+        if(generation_code != NULL)
+            redmagic_backwards_branch((void*)generation_code);
+
     }
+
+    if(generation_code == NULL)
+      redmagic_temp_enable();
+    else
+      redmagic_fellthrough_branch((void*)generation_code);
 
     /* Cut back result list if initial guess was too large. */
     if (Py_SIZE(self) < self->allocated)
@@ -900,6 +931,11 @@ listextend(PyListObject *self, PyObject *b)
     Py_RETURN_NONE;
 
   error:
+    if(generation_code == NULL)
+      redmagic_temp_enable();
+    else
+      redmagic_fellthrough_branch((void*)generation_code);
+
     Py_DECREF(it);
     return NULL;
 }

@@ -2772,7 +2772,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         PREDICTED_WITH_ARG(JUMP_ABSOLUTE);
         TARGET(JUMP_ABSOLUTE)
         {
-          uint8_t back_branch = first_instr + oparg < next_instr && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL;
+          uint8_t back_branch = first_instr + oparg < next_instr && f->f_iblock > 0 && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL;
           JUMPTO(oparg);
           if(back_branch)
             redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
@@ -3224,10 +3224,10 @@ fast_block_end:
                 // rearange so that the backwards branch operation will have the same behaviro when looping using a continue
                 long x_val = PyInt_AS_LONG(retval);
                 Py_DECREF(retval);
-                uint8_t back_branch = first_instr + x_val < next_instr && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL;
+                uint8_t back_branch = first_instr + x_val < next_instr && b->b_setup_loop_instr != NULL;
                 JUMPTO(x_val);
                 if(back_branch)
-                  redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
+                  redmagic_backwards_branch((void*)b->b_setup_loop_instr);
 #if FAST_LOOPS
                 goto fast_next_opcode;
 #else

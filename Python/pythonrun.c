@@ -181,9 +181,35 @@ Py_InitializeEx(int install_sigs)
     initialized = 1;
 
     redmagic_start();
-    redmagic_do_not_trace_function(&PyObject_Malloc);
-    redmagic_do_not_trace_function(&PyObject_Free);
-    redmagic_do_not_trace_function(&PyObject_Realloc);
+    // list of methods we do not want this jit to trace b/c won't be helpful to optimize
+    // eg: malloc memory allocators will have a lot of not meaningful branching given
+    // that they basically always return the same thing (sufficent memory)
+    redmagic_do_not_trace_function(&PyObject_MALLOC);
+    redmagic_do_not_trace_function(&PyObject_FREE);
+    redmagic_do_not_trace_function(&PyObject_REALLOC);
+    redmagic_do_not_trace_function(&PyMem_REALLOC);
+    redmagic_do_not_trace_function(&PyMem_MALLOC);
+    redmagic_do_not_trace_function(&PyMem_FREE);
+    redmagic_do_not_trace_function(&_PyObject_GC_Malloc);
+    redmagic_do_not_trace_function(&_PyObject_GC_New);
+    redmagic_do_not_trace_function(&_PyObject_GC_NewVar);
+    redmagic_do_not_trace_function(&PyObject_GC_Track);
+    redmagic_do_not_trace_function(&PyObject_GC_UnTrack);
+    redmagic_do_not_trace_function(&PyObject_GC_Del);
+#ifdef Py_TRACE_REFS
+    redmagic_do_not_trace_function(&_Py_NewReference);
+    redmagic_do_not_trace_function(&_Py_ForgetReference);
+    redmagic_do_not_trace_function(&_Py_Dealloc);
+    redmagic_do_not_trace_function(&_Py_PrintReferences);
+    redmagic_do_not_trace_function(&_Py_PrintReferenceAddresses);
+    redmagic_do_not_trace_function(&_Py_AddToAllObjects);
+#endif
+    // do not trace C methods (they are on their own for optimizations)
+    redmagic_do_not_trace_function(&PyCFunction_Call);
+
+    // this forces dl to resolve this method now which is important for when tracing...
+    // aka: this is a bug that should be fixed
+    redmagic_fellthrough_branch((void*)0);
 
 
     if ((p = Py_GETENV("PYTHONDEBUG")) && *p != '\0')
