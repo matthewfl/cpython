@@ -1,7 +1,12 @@
 /* Built-in functions */
 
+
 #include "Python.h"
 #include "Python-ast.h"
+
+
+#include "../redmagic.h"
+#include "frameobject.h" // fuck
 
 #include "node.h"
 #include "code.h"
@@ -86,11 +91,23 @@ builtin_all(PyObject *self, PyObject *v)
     PyObject *it, *item;
     PyObject *(*iternext)(PyObject *);
     int cmp;
+    void *generation_code; // for redmagic
 
     it = PyObject_GetIter(v);
     if (it == NULL)
         return NULL;
     iternext = *Py_TYPE(it)->tp_iternext;
+
+    generation_code = NULL;
+    if(it->ob_type == &PyGen_Type) {
+      PyFrameObject *f = ((PyGenObject*)it)->gi_frame;
+      if(f != NULL) {
+        generation_code = (void*) f->f_code;
+      }
+    }
+
+    if(generation_code == NULL)
+      redmagic_temp_disable();
 
     for (;;) {
         item = iternext(it);
@@ -100,13 +117,24 @@ builtin_all(PyObject *self, PyObject *v)
         Py_DECREF(item);
         if (cmp < 0) {
             Py_DECREF(it);
+            if(generation_code == NULL)
+              redmagic_temp_enable();
+            else
+              redmagic_fellthrough_branch(generation_code);
             return NULL;
         }
         if (cmp == 0) {
             Py_DECREF(it);
             Py_RETURN_FALSE;
         }
+        if(generation_code != NULL)
+          redmagic_backwards_branch(generation_code);
     }
+    if(generation_code == NULL)
+      redmagic_temp_enable();
+    else
+      redmagic_fellthrough_branch(generation_code);
+
     Py_DECREF(it);
     if (PyErr_Occurred()) {
         if (PyErr_ExceptionMatches(PyExc_StopIteration))
@@ -129,11 +157,23 @@ builtin_any(PyObject *self, PyObject *v)
     PyObject *it, *item;
     PyObject *(*iternext)(PyObject *);
     int cmp;
+    void *generation_code; // for redmagic
 
     it = PyObject_GetIter(v);
     if (it == NULL)
         return NULL;
     iternext = *Py_TYPE(it)->tp_iternext;
+
+    generation_code = NULL;
+    if(it->ob_type == &PyGen_Type) {
+      PyFrameObject *f = ((PyGenObject*)it)->gi_frame;
+      if(f != NULL) {
+        generation_code = (void*) f->f_code;
+      }
+    }
+
+    if(generation_code == NULL)
+      redmagic_temp_disable();
 
     for (;;) {
         item = iternext(it);
@@ -143,13 +183,24 @@ builtin_any(PyObject *self, PyObject *v)
         Py_DECREF(item);
         if (cmp < 0) {
             Py_DECREF(it);
+            if(generation_code == NULL)
+              redmagic_temp_enable();
+            else
+              redmagic_fellthrough_branch(generation_code);
             return NULL;
         }
         if (cmp == 1) {
             Py_DECREF(it);
             Py_RETURN_TRUE;
         }
+        if(generation_code != NULL)
+          redmagic_backwards_branch(generation_code);
     }
+    if(generation_code == NULL)
+      redmagic_temp_enable();
+    else
+      redmagic_fellthrough_branch(generation_code);
+
     Py_DECREF(it);
     if (PyErr_Occurred()) {
         if (PyErr_ExceptionMatches(PyExc_StopIteration))

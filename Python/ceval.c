@@ -735,15 +735,17 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         case op:\
 
 
-#define DISPATCH() \
-        { \
-    int _tick = _Py_Ticker - 1; \
-    _Py_Ticker = _tick; \
-    if (_tick >= 0) { \
-        FAST_DISPATCH(); \
-    } \
-    continue; \
-        }
+#define DISPATCH()                              \
+  {                                             \
+    if(redmagic_is_traced() && _Py_Ticker > 0)  \
+      FAST_DISPATCH();                          \
+    int _tick = _Py_Ticker - 1;                 \
+    _Py_Ticker = _tick;                         \
+    if (_tick >= 0) {                           \
+      FAST_DISPATCH();                          \
+    }                                           \
+    continue;                                   \
+  }
 
 #ifdef LLTRACE
 #define FAST_DISPATCH() \
@@ -1085,12 +1087,18 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
            async I/O handler); see Py_AddPendingCall() and
            Py_MakePendingCalls() above. */
 
-        if (--_Py_Ticker < 0) {
+        // only count the ticker if not traced
+        if(!redmagic_is_traced())
+          --_Py_Ticker;
+
+        if (_Py_Ticker <= 0) {
             if (*next_instr == SETUP_FINALLY) {
                 /* Make the last opcode before
                    a try: finally: block uninterruptible. */
+
                 goto fast_next_opcode;
             }
+            redmagic_temp_disable();
             _Py_Ticker = _Py_CheckInterval;
             tstate->tick_counter++;
 #ifdef WITH_TSC
@@ -1099,6 +1107,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             if (pendingcalls_to_do) {
                 if (Py_MakePendingCalls() < 0) {
                     why = WHY_EXCEPTION;
+                    redmagic_temp_enable();
                     goto on_error;
                 }
                 if (pendingcalls_to_do)
@@ -1131,10 +1140,12 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
                     PyErr_SetNone(x);
                     Py_DECREF(x);
                     why = WHY_EXCEPTION;
+                    redmagic_temp_enable();
                     goto on_error;
                 }
             }
 #endif
+            redmagic_temp_enable();
         }
 
     fast_next_opcode:
@@ -2775,7 +2786,8 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
           uint8_t back_branch = first_instr + oparg < next_instr && f->f_iblock > 0 && f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr != NULL;
           JUMPTO(oparg);
           if(back_branch)
-            redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
+            goto _redmagic_do_backwards_branch;
+          //redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
 
 #if FAST_LOOPS
             /* Enabling this path speeds-up all while and for-loops by bypassing
@@ -3149,6 +3161,16 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 
         } /* switch */
 
+        goto on_error;
+    _redmagic_do_backwards_branch:
+        // use this so that all backwards branches are comming from a consistent location wrt rip
+        redmagic_backwards_branch((void*)f->f_blockstack[f->f_iblock - 1].b_setup_loop_instr);
+#if FAST_LOOPS
+        goto fast_next_opcode;
+#else
+        DISPATCH();
+#endif
+
         on_error:
 
         READ_TIMESTAMP(inst1);
@@ -3227,7 +3249,8 @@ fast_block_end:
                 uint8_t back_branch = first_instr + x_val < next_instr && b->b_setup_loop_instr != NULL;
                 JUMPTO(x_val);
                 if(back_branch)
-                  redmagic_backwards_branch((void*)b->b_setup_loop_instr);
+                  goto _redmagic_do_backwards_branch;
+                //redmagic_backwards_branch((void*)b->b_setup_loop_instr);
 #if FAST_LOOPS
                 goto fast_next_opcode;
 #else

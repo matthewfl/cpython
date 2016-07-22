@@ -187,9 +187,11 @@ Py_InitializeEx(int install_sigs)
     redmagic_do_not_trace_function(&PyObject_MALLOC);
     redmagic_do_not_trace_function(&PyObject_FREE);
     redmagic_do_not_trace_function(&PyObject_REALLOC);
+#ifdef PYMALLOC_DEBUG
     redmagic_do_not_trace_function(&PyMem_REALLOC);
     redmagic_do_not_trace_function(&PyMem_MALLOC);
     redmagic_do_not_trace_function(&PyMem_FREE);
+#endif
     redmagic_do_not_trace_function(&_PyObject_GC_Malloc);
     redmagic_do_not_trace_function(&_PyObject_GC_New);
     redmagic_do_not_trace_function(&_PyObject_GC_NewVar);
