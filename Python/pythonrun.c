@@ -209,6 +209,9 @@ Py_InitializeEx(int install_sigs)
     // do not trace C methods (they are on their own for optimizations)
     redmagic_do_not_trace_function(&PyCFunction_Call);
 
+    redmagic_do_not_trace_function(&PyCode_Addr2Line);
+    redmagic_do_not_trace_function(&PyTraceBack_Here);
+
     // this forces dl to resolve this method now which is important for when tracing...
     // aka: this is a bug that should be fixed
     redmagic_fellthrough_branch((void*)0);

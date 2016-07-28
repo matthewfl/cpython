@@ -1,8 +1,21 @@
+#include "../redmagic.h"
+
+
 #ifndef Py_OBJECT_H
 #define Py_OBJECT_H
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+#define REDMAGIC_MERGE_RETURN(TYPE, OP)         \
+  do {                                          \
+    redmagic_begin_merge_block();               \
+    TYPE red_ret = OP ;                         \
+    redmagic_end_merge_block();                 \
+    return red_ret;                             \
+  } while (0)                                   \
+
 
 
 /* Object and type object interface */
@@ -768,7 +781,7 @@ PyAPI_FUNC(void) _Py_AddToAllObjects(PyObject *, int force);
     _Py_INC_REFTOTAL  _Py_REF_DEBUG_COMMA       \
     ((PyObject*)(op))->ob_refcnt++)
 
-#define Py_DECREF(op)                                   \
+#define Py_DECREF_RAW(op)                               \
     do {                                                \
         if (_Py_DEC_REFTOTAL  _Py_REF_DEBUG_COMMA       \
         --((PyObject*)(op))->ob_refcnt != 0)            \
@@ -776,6 +789,13 @@ PyAPI_FUNC(void) _Py_AddToAllObjects(PyObject *, int force);
         else                                            \
         _Py_Dealloc((PyObject *)(op));                  \
     } while (0)
+
+#define Py_DECREF(op)                           \
+  do {                                          \
+    redmagic_begin_merge_block();               \
+    Py_DECREF_RAW(op);                          \
+    redmagic_end_merge_block();                 \
+  } while(0)
 
 /* Safely decref `op` and set `op` to NULL, especially useful in tp_clear
  * and tp_dealloc implementatons.
@@ -822,7 +842,12 @@ PyAPI_FUNC(void) _Py_AddToAllObjects(PyObject *, int force);
 
 /* Macros to use in case the object pointer may be NULL: */
 #define Py_XINCREF(op) do { if ((op) == NULL) ; else Py_INCREF(op); } while (0)
-#define Py_XDECREF(op) do { if ((op) == NULL) ; else Py_DECREF(op); } while (0)
+#define Py_XDECREF(op)                                      \
+  do {                                                      \
+    redmagic_begin_merge_block();                           \
+    if ((op) == NULL) ; else Py_DECREF_RAW(op);             \
+    redmagic_end_merge_block();                             \
+  } while (0)
 
 /* Safely decref `op` and set `op` to `op2`.
  *

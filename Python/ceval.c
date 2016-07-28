@@ -250,6 +250,7 @@ PyEval_ThreadsInitialized(void)
 void
 PyEval_InitThreads(void)
 {
+    redmagic_ensure_not_traced();
     if (interpreter_lock)
         return;
     interpreter_lock = PyThread_allocate_lock();
@@ -272,6 +273,7 @@ PyEval_ReleaseLock(void)
 void
 PyEval_AcquireThread(PyThreadState *tstate)
 {
+    redmagic_ensure_not_traced();
     if (tstate == NULL)
         Py_FatalError("PyEval_AcquireThread: NULL new thread state");
     /* Check someone has called PyEval_InitThreads() to create the lock */

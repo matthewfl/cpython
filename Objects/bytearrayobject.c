@@ -247,7 +247,7 @@ PyByteArray_Resize(PyObject *self, Py_ssize_t size)
         ((PyByteArrayObject *)self)->ob_bytes[size] = '\0'; /* Trailing null */
         return 0;
     }
-    else if (size <= alloc * 1.125) {
+    else if (size <= (alloc * 9) / 8 /* * 1.125*/) { // redmagic does not handle the floating point multiply well atm, TODO fix that
         /* Moderate upsize; overallocate similar to list_resize() */
         alloc = size + (size >> 3) + (size < 9 ? 3 : 6);
     }

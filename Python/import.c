@@ -15,6 +15,8 @@
 #include "osdefs.h"
 #include "importdl.h"
 
+#include "../redmagic.h"
+
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -2307,6 +2309,8 @@ PyImport_ImportModuleLevel(char *name, PyObject *globals, PyObject *locals,
 {
     PyObject *result;
     _PyImport_AcquireLock();
+    // there is no point in tracing the import since this will be all new code and we don't know how often this is used
+    redmagic_ensure_not_traced();
     result = import_module_level(name, globals, locals, fromlist, level);
     if (_PyImport_ReleaseLock() < 0) {
         Py_XDECREF(result);

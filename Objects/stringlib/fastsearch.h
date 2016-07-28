@@ -42,6 +42,8 @@ fastsearch(const STRINGLIB_CHAR* s, Py_ssize_t n,
     Py_ssize_t skip, count = 0;
     Py_ssize_t i, j, mlast, w;
 
+    redmagic_ensure_not_traced();
+
     w = n - m;
 
     if (w < 0 || (mode == FAST_COUNT && maxcount == 0))

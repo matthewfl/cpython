@@ -1163,7 +1163,8 @@ string_contains(PyObject *str_obj, PyObject *sub_obj)
         }
     }
 
-    return stringlib_contains_obj(str_obj, sub_obj);
+    REDMAGIC_MERGE_RETURN(int, stringlib_contains_obj(str_obj, sub_obj));
+    //return stringlib_contains_obj(str_obj, sub_obj);
 }
 
 static PyObject *
@@ -1462,7 +1463,8 @@ string_split(PyStringObject *self, PyObject *args)
     if (maxsplit < 0)
         maxsplit = PY_SSIZE_T_MAX;
     if (subobj == Py_None)
-        return stringlib_split_whitespace((PyObject*) self, s, len, maxsplit);
+      REDMAGIC_MERGE_RETURN(PyObject*, stringlib_split_whitespace((PyObject*) self, s, len, maxsplit));
+    //return stringlib_split_whitespace((PyObject*) self, s, len, maxsplit);
     if (PyString_Check(subobj)) {
         sub = PyString_AS_STRING(subobj);
         n = PyString_GET_SIZE(subobj);
@@ -1474,7 +1476,8 @@ string_split(PyStringObject *self, PyObject *args)
     else if (PyObject_AsCharBuffer(subobj, &sub, &n))
         return NULL;
 
-    return stringlib_split((PyObject*) self, s, len, sub, n, maxsplit);
+    REDMAGIC_MERGE_RETURN(PyObject*, stringlib_split((PyObject*) self, s, len, sub, n, maxsplit));
+    //return stringlib_split((PyObject*) self, s, len, sub, n, maxsplit);
 }
 
 PyDoc_STRVAR(partition__doc__,
@@ -1501,11 +1504,12 @@ string_partition(PyStringObject *self, PyObject *sep_obj)
     else if (PyObject_AsCharBuffer(sep_obj, &sep, &sep_len))
         return NULL;
 
-    return stringlib_partition(
+    //return
+    REDMAGIC_MERGE_RETURN(PyObject*, stringlib_partition(
         (PyObject*) self,
         PyString_AS_STRING(self), PyString_GET_SIZE(self),
         sep_obj, sep, sep_len
-        );
+       ));
 }
 
 PyDoc_STRVAR(rpartition__doc__,
@@ -1532,11 +1536,12 @@ string_rpartition(PyStringObject *self, PyObject *sep_obj)
     else if (PyObject_AsCharBuffer(sep_obj, &sep, &sep_len))
         return NULL;
 
-    return stringlib_rpartition(
+    //return
+    REDMAGIC_MERGE_RETURN(PyObject*, stringlib_rpartition(
         (PyObject*) self,
         PyString_AS_STRING(self), PyString_GET_SIZE(self),
         sep_obj, sep, sep_len
-        );
+      ));
 }
 
 PyDoc_STRVAR(rsplit__doc__,
@@ -1561,7 +1566,8 @@ string_rsplit(PyStringObject *self, PyObject *args)
     if (maxsplit < 0)
         maxsplit = PY_SSIZE_T_MAX;
     if (subobj == Py_None)
-        return stringlib_rsplit_whitespace((PyObject*) self, s, len, maxsplit);
+      //return
+      REDMAGIC_MERGE_RETURN(PyObject*, stringlib_rsplit_whitespace((PyObject*) self, s, len, maxsplit));
     if (PyString_Check(subobj)) {
         sub = PyString_AS_STRING(subobj);
         n = PyString_GET_SIZE(subobj);
@@ -1573,7 +1579,8 @@ string_rsplit(PyStringObject *self, PyObject *args)
     else if (PyObject_AsCharBuffer(subobj, &sub, &n))
         return NULL;
 
-    return stringlib_rsplit((PyObject*) self, s, len, sub, n, maxsplit);
+    //return
+    REDMAGIC_MERGE_RETURN(PyObject*, stringlib_rsplit((PyObject*) self, s, len, sub, n, maxsplit));
 }
 
 
