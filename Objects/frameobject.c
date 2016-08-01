@@ -340,6 +340,8 @@ frame_setlineno(PyFrameObject *f, PyObject* p_new_lineno)
             PyObject *v = (*--f->f_stacktop);
             Py_DECREF(v);
         }
+        if(b->b_setup_loop_instr != NULL)
+          redmagic_fellthrough_branch((void*)b->b_setup_loop_instr);
     }
 
     /* Finally set the new f_lineno and f_lasti and return OK. */
@@ -765,6 +767,10 @@ PyFrame_BlockPop(PyFrameObject *f)
     if (f->f_iblock <= 0)
         Py_FatalError("XXX block stack underflow");
     b = &f->f_blockstack[--f->f_iblock];
+
+    if(b->b_setup_loop_instr != NULL)
+      redmagic_fellthrough_branch((void*)b->b_setup_loop_instr);
+
     return b;
 }
 

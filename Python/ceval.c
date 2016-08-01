@@ -979,6 +979,8 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
     if (Py_EnterRecursiveCall(""))
         return NULL;
 
+    redmagic_begin_branchable_frame();
+
     tstate->frame = f;
 
     if (tstate->use_tracing) {
@@ -1345,7 +1347,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             break;
         }
 
-        TARGET_NOARG( UNARY_NEGATIVE)
+        TARGET_NOARG(UNARY_NEGATIVE)
         {
             v = TOP();
             x = PyNumber_Negative(v);
@@ -2134,8 +2136,6 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
                     v = POP();
                     Py_DECREF(v);
                 }
-                if(b->b_setup_loop_instr != NULL)
-                  redmagic_fellthrough_branch((void*)b->b_setup_loop_instr);
             }
             DISPATCH();
         }
@@ -2588,7 +2588,9 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             }
             else {
               slow_compare:
+                redmagic_temp_disable();
                 x = cmp_outcome(oparg, v, w);
+                redmagic_temp_enable();
             }
             Py_DECREF(v);
             Py_DECREF(w);
@@ -2883,7 +2885,6 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 
         TARGET(SETUP_WITH)
         {
-        {
             static PyObject *exit, *enter;
             w = TOP();
             x = special_lookup(w, "__exit__", &exit);
@@ -2908,8 +2909,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
                                STACK_LEVEL());
 
             PUSH(x);
-                DISPATCH();
-            }
+            DISPATCH();
         }
 
         TARGET_NOARG(WITH_CLEANUP)
@@ -3245,7 +3245,7 @@ fast_block_end:
             assert(why != WHY_YIELD);
             if (b->b_type == SETUP_LOOP && why == WHY_CONTINUE) {
                 why = WHY_NOT;
-                // rearange so that the backwards branch operation will have the same behaviro when looping using a continue
+                // rearange so that the backwards branch operation will have the same behavior when looping using a continue
                 long x_val = PyInt_AS_LONG(retval);
                 Py_DECREF(retval);
                 uint8_t back_branch = first_instr + x_val < next_instr && b->b_setup_loop_instr != NULL;
@@ -3386,11 +3386,16 @@ exit_eval_frame:
     //printf("%i\n", why);
 
     // any frame that is going to exist at the end of the method is the result of a yield
-    // and thus is not well behaved wrt control flow, so we are just going to backlist those
-    for(int i = 0; i < f->f_iblock; i++)
-      if(f->f_blockstack[i].b_setup_loop_instr != NULL)
-        redmagic_disable_branch((void*)f->f_blockstack[i].b_setup_loop_instr);
+    // so this makes these frames behave like the yield is an exiting of control flow
+    // vvv this will now be taken care of by the end branchable frame
+    /* for(int i = f->f_iblock - 1; i >= 0; i--) { */
+    /*   if(f->f_blockstack[i].b_setup_loop_instr != NULL) { */
+    /*     redmagic_fellthrough_branch((void*)f->f_blockstack[i].b_setup_loop_instr); */
+    /*     //redmagic_disable_branch((void*)f->f_blockstack[i].b_setup_loop_instr); */
+    /*   } */
+    /* } */
 
+    redmagic_end_branchable_frame();
 
     return retval;
 }

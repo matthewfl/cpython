@@ -405,12 +405,15 @@ PyGen_NeedsFinalizing(PyGenObject *gen)
     if (f == NULL || f->f_stacktop == NULL || f->f_iblock <= 0)
         return 0; /* no frame or empty blockstack == no finalization */
 
-    /* Any block type besides a loop requires cleanup. */
-    i = f->f_iblock;
-    while (--i >= 0) {
-        if (f->f_blockstack[i].b_type != SETUP_LOOP)
-            return 1;
-    }
+    // redmagic requires that loops hit their finaliziing clauses, so now everything
+    return 1;
+
+    /* /\* Any block type besides a loop requires cleanup. *\/ */
+    /* i = f->f_iblock; */
+    /* while (--i >= 0) { */
+    /*     if (f->f_blockstack[i].b_type != SETUP_LOOP) */
+    /*         return 1; */
+    /* } */
 
     /* No blocks except loops, it's safe to skip finalization. */
     return 0;
