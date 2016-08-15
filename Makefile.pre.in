@@ -183,7 +183,7 @@ LDLIBRARYDIR=   @LDLIBRARYDIR@
 INSTSONAME=	@INSTSONAME@
 
 
-LIBS=		@LIBS@ $(shell pwd)/libredmagic.so.1.0.0 -Wl,-rpath=$$ORIGIN/ -Wl,-rpath=$(shell pwd)
+LIBS=		@LIBS@ -Wl,-rpath='$$ORIGIN/' -Wl,-rpath='$$ORIGIN/../lib/' -Wl,-rpath=$(shell pwd) libredmagic.so.1.0.0
 LIBM=		@LIBM@
 LIBC=		@LIBC@
 SYSLIBS=	$(LIBM) $(LIBC)

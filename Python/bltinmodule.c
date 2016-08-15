@@ -124,6 +124,10 @@ builtin_all(PyObject *self, PyObject *v)
             return NULL;
         }
         if (cmp == 0) {
+            if(generation_code == NULL)
+              redmagic_temp_enable();
+            else
+              redmagic_fellthrough_branch(generation_code);
             Py_DECREF(it);
             Py_RETURN_FALSE;
         }
@@ -190,6 +194,10 @@ builtin_any(PyObject *self, PyObject *v)
             return NULL;
         }
         if (cmp == 1) {
+            if(generation_code == NULL)
+              redmagic_temp_enable();
+            else
+              redmagic_fellthrough_branch(generation_code);
             Py_DECREF(it);
             Py_RETURN_TRUE;
         }

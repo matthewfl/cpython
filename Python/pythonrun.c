@@ -705,7 +705,7 @@ Py_EndInterpreter(PyThreadState *tstate)
     PyInterpreterState_Delete(interp);
 }
 
-static char *progname = "python";
+static char *progname = "python2.7";
 
 void
 Py_SetProgramName(char *pn)

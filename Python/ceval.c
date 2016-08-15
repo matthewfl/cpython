@@ -808,6 +808,8 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
     PyThreadState *tstate = PyThreadState_GET();
     PyCodeObject *co;
 
+    uint64_t redmagic_branchable_frame_id;
+
     /* when tracing we set things up so that
 
            not (instr_lb <= current_bytecode_offset < instr_ub)
@@ -979,7 +981,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
     if (Py_EnterRecursiveCall(""))
         return NULL;
 
-    redmagic_begin_branchable_frame();
+    redmagic_begin_branchable_frame(&redmagic_branchable_frame_id);
 
     tstate->frame = f;
 
@@ -3395,7 +3397,7 @@ exit_eval_frame:
     /*   } */
     /* } */
 
-    redmagic_end_branchable_frame();
+    redmagic_end_branchable_frame(&redmagic_branchable_frame_id);
 
     return retval;
 }
@@ -4382,6 +4384,8 @@ call_function(PyObject ***pp_stack, int oparg
     PyObject *func = *pfunc;
     PyObject *x, *w;
 
+    redmagic_begin_branchable_frame(NULL);
+
     /* Always dispatch PyCFunction first, because these are
        presumed to be the most frequent callable object.
     */
@@ -4452,6 +4456,9 @@ call_function(PyObject ***pp_stack, int oparg
         Py_DECREF(w);
         PCALL(PCALL_POP);
     }
+
+    redmagic_end_branchable_frame(NULL);
+
     return x;
 }
 
