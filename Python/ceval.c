@@ -3390,12 +3390,12 @@ exit_eval_frame:
     // any frame that is going to exist at the end of the method is the result of a yield
     // so this makes these frames behave like the yield is an exiting of control flow
     // vvv this will now be taken care of by the end branchable frame
-    /* for(int i = f->f_iblock - 1; i >= 0; i--) { */
-    /*   if(f->f_blockstack[i].b_setup_loop_instr != NULL) { */
-    /*     redmagic_fellthrough_branch((void*)f->f_blockstack[i].b_setup_loop_instr); */
-    /*     //redmagic_disable_branch((void*)f->f_blockstack[i].b_setup_loop_instr); */
-    /*   } */
-    /* } */
+    for(int i = f->f_iblock - 1; i >= 0; i--) {
+      if(f->f_blockstack[i].b_setup_loop_instr != NULL) {
+        redmagic_fellthrough_branch((void*)f->f_blockstack[i].b_setup_loop_instr);
+        //redmagic_disable_branch((void*)f->f_blockstack[i].b_setup_loop_instr);
+      }
+    }
 
     redmagic_end_branchable_frame(&redmagic_branchable_frame_id);
 
