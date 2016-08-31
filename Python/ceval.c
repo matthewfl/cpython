@@ -4384,7 +4384,9 @@ call_function(PyObject ***pp_stack, int oparg
     PyObject *func = *pfunc;
     PyObject *x, *w;
 
-    redmagic_begin_branchable_frame(NULL);
+    uint64_t this_frame;
+
+    redmagic_begin_branchable_frame(&this_frame);
 
     /* Always dispatch PyCFunction first, because these are
        presumed to be the most frequent callable object.
@@ -4457,7 +4459,7 @@ call_function(PyObject ***pp_stack, int oparg
         PCALL(PCALL_POP);
     }
 
-    redmagic_end_branchable_frame(NULL);
+    redmagic_end_branchable_frame(&this_frame);
 
     return x;
 }
